@@ -58,4 +58,3 @@ jobs:
             --set image.tag=latest
         env:
           KUBECONFIG: ${{ secrets.KUBECONFIG }}
-
