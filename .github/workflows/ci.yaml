@@ -9,7 +9,6 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
     steps:
       # Step 1: Checkout repository
       - name: Checkout repository
@@ -19,7 +18,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22
+          go-version: '1.22'
 
       # Step 3: Run lint
       - name: Run golangci-lint
@@ -33,33 +32,30 @@ jobs:
 
       # Step 5: Log in to Docker Hub
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
-          username: kateshubhangi       # <- Your Docker Hub username
+          username: kateshubhangi
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Step 5.1: Debug Docker tag
+      # Step 6: Debug Docker tag
       - name: Debug Docker tag
         run: |
           echo "Docker tags:"
           echo "kateshubhangi/go-web-app:latest"
           echo "kateshubhangi/go-web-app:${{ github.run_id }}"
 
-      # Step 6: Build and Push Docker image
+      # Step 7: Build and Push Docker image
       - name: Build and Push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: |
-            kateshubhangi/go-web-app:latest
-            kateshubhangi/go-web-app:${{ github.run_id }}
+          tags: kateshubhangi/go-web-app:latest,kateshubhangi/go-web-app:${{ github.run_id }}
 
   update-newtag-in-helm-chart:
     runs-on: ubuntu-latest
     needs: build-and-push
-
     steps:
       # Step 1: Checkout repository
       - name: Checkout repository
