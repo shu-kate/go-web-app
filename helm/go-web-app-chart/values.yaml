@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: kateshubhangi/go-web-app
   pullPolicy: IfNotPresent
-  tag: "19162498520"
+  tag: "19162539900"
 
 ingress:
   enabled: false
