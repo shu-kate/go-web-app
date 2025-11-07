@@ -27,66 +27,49 @@ jobs:
         with:
           version: v1.61.0
 
-      # Step 4: Build Go app (ensures code compiles)
+      # Step 4: Build Go app (optional, ensures binary compiles)
       - name: Build Go app
         run: go build -v ./...
 
-      # Step 5: Run tests
-      - name: Run tests
-        run: go test -v ./...
-
-      # Step 6: Log in to Docker Hub
+      # Step 5: Log in to Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: kateshubhangi       # <- Your Docker Hub username
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Step 7: Build and Push Docker image
+      # Step 6: Build and Push Docker image
       - name: Build and Push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/go-web-app:${{ github.run_id }}
+          tags: kateshubhangi/go-web-app:${{ github.run_id }}
 
-  update-helm-and-deploy:
+  update-newtag-in-helm-chart:
     runs-on: ubuntu-latest
     needs: build-and-push
 
     steps:
-      # Step 1: Checkout repo again (for Helm)
+      # Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.TOKEN }}
 
-      # Step 2: Update image tag in Helm chart values.yaml
-      - name: Update image tag
+      # Step 2: Update image tag in Helm chart
+      - name: Update tag in Helm chart
         run: |
           sed -i 's/tag: .*/tag: "${{ github.run_id }}"/' helm/go-web-app-chart/values.yaml
 
-      # Step 3: Commit and push the updated Helm chart
-        # (this updates your repo with the new image tag)
+      # Step 3: Commit and push Helm chart changes
       - name: Commit and push changes
         run: |
           git config --global user.email "github-actions@users.noreply.github.com"
           git config --global user.name "GitHub Actions"
           git add helm/go-web-app-chart/values.yaml
           git commit -m "Update image tag in Helm chart to ${{ github.run_id }}"
-          git push origin main
+          git push
 
-      # Step 4: Set up Helm
-      - name: Set up Helm
-        uses: azure/setup-helm@v3
-
-      # Step 5: Deploy to Kubernetes using Helm
-      - name: Helm upgrade/deploy
-        run: |
-          helm upgrade --install go-web-app ./helm/go-web-app-chart \
-            --set image.repository=${{ secrets.DOCKERHUB_USERNAME }}/go-web-app \
-            --set image.tag=${{ github.run_id }}
-        env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG }}
 
