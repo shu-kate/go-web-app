@@ -27,7 +27,7 @@ jobs:
         with:
           version: v1.61.0
 
-      # Step 4: Build Go app (optional, ensures binary compiles)
+      # Step 4: Build Go app (optional)
       - name: Build Go app
         run: go build -v ./...
 
@@ -37,6 +37,10 @@ jobs:
         with:
           username: kateshubhangi       # <- Your Docker Hub username
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Step 5.1: Debug Docker tag
+      - name: Debug Docker tag
+        run: echo "Docker tag: kateshubhangi/go-web-app:${{ github.run_id }}"
 
       # Step 6: Build and Push Docker image
       - name: Build and Push Docker image
@@ -71,5 +75,6 @@ jobs:
           git add helm/go-web-app-chart/values.yaml
           git commit -m "Update image tag in Helm chart to ${{ github.run_id }}"
           git push
+
 
 
